@@ -1,0 +1,8 @@
+{
+  "name": "ejs",
+  "author": "Jake Skaggs",
+  "private": true,
+  "dependencies": {
+    "express": "^4.16.3"
+  }
+}
