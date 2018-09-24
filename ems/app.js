@@ -13,6 +13,7 @@ var http = require("http");
 var path = require("path");
 var logger = require("morgan");
 var mongoose = require("mongoose");
+var helmet = require("helmet");
 
 
 var app = express();
@@ -38,6 +39,7 @@ var app = express();
 
 //use statements
 app.use(logger("short"));
+app.use(helmet.xssFilter());
 
 
 // model
@@ -51,10 +53,11 @@ app.set("views", path.resolve(__dirname, "views"));
 app.set("view engine", "ejs");
 
 
-
+//http calls
 app.get("/", function (request, response) {
     response.render("index", {
-        title: "Home page"
+        title: "Home page",
+        message: "XSS Prevention Example"
     });
 });
 
