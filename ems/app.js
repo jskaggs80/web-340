@@ -21,8 +21,9 @@ var csrf = require("csurf");
 // setup csrf protection
 var csrfProtection = csrf({cookie: true});
 
+//initialize the app
 var app = express();
-var logger = require("morgan");
+
 var Employee = require("./models/employee");
 
 // mLab connection
@@ -38,9 +39,6 @@ db.on("error", console.error.bind(console, "MongoDB connection error: "));
 db.once("open", function() {
     console.log("Application connected to mLab MongoDB instance");
 });
-
-// intitialize the app
-var app = express();
 
 //use statements
 app.use(logger("short"));
@@ -67,40 +65,81 @@ var employee = new Employee({
 //set statements
 app.set("views", path.resolve(__dirname, "views"));
 app.set("view engine", "ejs");
+app.set("port", process.env.PORT || 8080);
 
 
 //http calls
 app.get("/", function (request, response) {
     response.render("index", {
-        title: "Home page",
-        message: "CSRF Example"
+        title: "Home page"
     });
 });
 
+app.get("/new", function (request, response) {
+    response.render("new", {
+        title: "New Employee"
+    });
+});
+
+
+
+
 //post
 app.post("/process", function(request, response) {
-    // console.log(request.body.txtName); 
+     console.log(request.body.txtName); 
     if (!request.body.txtName) { 
         response.status(400).send("Entries must have a name"); 
         return; 
     }
  
     // get the request's form data 
-    var fruitName = request.body.txtName; 
-    console.log(fruitName);
+    var fName = request.body.txtName; 
+    console.log(fName);
  
-    // create a fruit model 
-    var fruit = new Fruit({ 
-        name: fruitName 
+    // create a employee model 
+    var employee = new Employee({ 
+        name: fName 
     });
  
     // save 
-    fruit.save(function (error) { 
+    employee.save(function (error) { 
         if (error) throw error; 
-        console.log(fruitName + " saved successfully!"); 
+        console.log(employee + " saved successfully!"); 
     }); 
-    response.redirect("/"); 
+    response.redirect("/list"); 
  });
+
+ app.get("/list", function(request, response) {
+    Employee.find({}, function(error, employees) {
+       if (error) throw error;
+
+       response.render("list", {
+           title: "Employee List",
+           employees: employees
+       });
+    });
+});
+
+app.get("/view/:queryName", function (request, response) {
+    var queryName = request.params.queryName;
+
+    Employee.find({'name': queryName}, function(error, employees) {
+        if (error) throw error;
+
+        console.log(employees);
+
+        if (employees.length > 0) {
+            response.render("view", {
+                title: "Employee Record",
+                employee: employees
+            })
+        }
+        else {
+            response.redirect("/list")
+        }
+
+    });
+});
 
 //create server
 http.createServer(app).listen(8080, function() {
